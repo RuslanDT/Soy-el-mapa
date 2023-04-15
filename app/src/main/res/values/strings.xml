@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Soy el Mapa</string>
+    <string name="app_name">Mapa</string>
+    <string name="agregar_ubicacion">Agregar Ubicacion</string>
 </resources>
