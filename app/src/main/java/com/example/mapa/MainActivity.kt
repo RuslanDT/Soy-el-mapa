@@ -120,6 +120,8 @@ class MainActivity : AppCompatActivity() {
         firstMarker?.position = startPoint
         firstMarker?.setAnchor(Marker.ANCHOR_BOTTOM, Marker.ANCHOR_CENTER)
         firstMarker?.title = "UBICACION ACTUAL"
+        firstMarker?.setIcon(getResources().getDrawable(org.osmdroid.gpkg.R.drawable.marker_default_focused_base))
+
         map?.overlays?.add(firstMarker)
         map?.invalidate()
 
@@ -144,23 +146,25 @@ class MainActivity : AppCompatActivity() {
                     GestureDetector(ctx, object : GestureDetector.SimpleOnGestureListener() {
                         override fun onLongPress(e: MotionEvent) {
                             // Obtener las coordenadas del punto donde se realizó la pulsación
-                            if (colocar) {
-                                endPoint =
-                                    map?.projection!!.fromPixels(
-                                        e.x.toInt(),
-                                        e.y.toInt()
-                                    ) as GeoPoint?
-                                map?.overlays?.remove(secondMarker)
-                                secondMarker = Marker(map)
-                                secondMarker?.position = endPoint
-                                secondMarker?.setAnchor(Marker.ANCHOR_BOTTOM, Marker.ANCHOR_CENTER)
-                                secondMarker?.title = "DESTINO"
-                                map?.overlays?.add(secondMarker)
 
-                                line.setPoints(emptyList())
-                                map?.overlays?.remove(line)
-                                coords()
-                            }
+                            endPoint =
+                                map?.projection!!.fromPixels(
+                                    e.x.toInt(),
+                                    e.y.toInt()
+                                ) as GeoPoint?
+
+                            map?.overlays?.remove(secondMarker)
+                            secondMarker = Marker(map)
+                            secondMarker?.position = endPoint
+                            secondMarker?.setAnchor(Marker.ANCHOR_BOTTOM, Marker.ANCHOR_CENTER)
+                            secondMarker?.title = "DESTINO"
+                            secondMarker?.setIcon(getResources().getDrawable(org.osmdroid.gpkg.R.drawable.marker_default_focused_base))
+                            map?.overlays?.add(secondMarker)
+
+                            line.setPoints(emptyList())
+                            map?.overlays?.remove(line)
+                            coords()
+
                             // Redibujar el mapa para mostrar el nuevo marcador
                             map?.invalidate()
                         }
