@@ -7,14 +7,24 @@
     tools:context=".MainActivity">
 
     <Button
-        android:id="@+id/ubi"
+        android:id="@+id/btnpos2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/agregar_ubicacion"
+        android:layout_marginStart="20dp"
+        android:text="destino"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btnpos1"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="VisualLintOverlap" />
+
+    <Button
+        android:id="@+id/btnpos1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="inicial"
+        app:layout_constraintEnd_toStartOf="@+id/btnpos2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <org.osmdroid.views.MapView
         android:id="@+id/map"
@@ -22,7 +32,6 @@
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0">

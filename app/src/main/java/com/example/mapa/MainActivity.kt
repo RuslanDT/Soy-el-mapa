@@ -13,7 +13,6 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Button
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -41,7 +40,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var locationCallback: LocationCallback
     private lateinit var locationRequest: LocationRequest
     var map: MapView? = null
-    private lateinit var boton: Button
+    private lateinit var btnDestino: Button
+    private lateinit var btnInico: Button
 
     private val direccionesApi: DireccionesApi by lazy {
         Direcciones.retrofitService
@@ -61,7 +61,9 @@ class MainActivity : AppCompatActivity() {
 
 
         map = findViewById<View>(R.id.map) as MapView
-        boton = findViewById(R.id.ubi)
+        map?.setBuiltInZoomControls(true)
+        btnDestino = findViewById(R.id.btnpos2)
+        btnInico = findViewById(R.id.btnpos1)
         map!!.setTileSource(TileSourceFactory.MAPNIK)
 
         val mapController = map!!.controller
@@ -74,16 +76,23 @@ class MainActivity : AppCompatActivity() {
 
         // Configura el callback de ubicación
         var hasCenteredMap = false
+
+        startPoint = GeoPoint(61.480145, 23.501203)
+        mapController.setCenter(startPoint)
+        hasCenteredMap = true
+
         locationCallback = object : LocationCallback() {
             @Suppress("NAME_SHADOWING")
             override fun onLocationResult(locationResult: LocationResult) {
-                val lastLocation = locationResult.lastLocation
-                startPoint = GeoPoint(lastLocation!!.latitude, lastLocation.longitude)
-                firstMarker?.position = startPoint
-                if (!hasCenteredMap) {
+                btnInico.setOnClickListener{
+                    val lastLocation = locationResult.lastLocation
+                    startPoint = GeoPoint(lastLocation!!.latitude, lastLocation.longitude)
+                    firstMarker?.position = startPoint
+                    mapController.setZoom(19)
                     mapController.setCenter(startPoint)
                     hasCenteredMap = true
                 }
+
                 if (secondMarker != null && line.distance > 0) {
                     line.setPoints(emptyList())
                     map?.overlays?.remove(line)
@@ -101,11 +110,11 @@ class MainActivity : AppCompatActivity() {
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
 
-        items.add(
+        /*items.add(
             OverlayItem(
                 "Title", "Description", GeoPoint(0.0, 0.0)
             )
-        )
+        )*/
 
         firstMarker = Marker(map)
         firstMarker?.position = startPoint
@@ -129,59 +138,44 @@ class MainActivity : AppCompatActivity() {
         mOverlay.setFocusItemsOnTap(true)
 
         // Crear un nuevo Overlay para capturar eventos de toque
-        val touchOverlay = object : Overlay() {
+        btnDestino.setOnClickListener {
+            val touchOverlay = object : Overlay() {
+                private val gestureDetector =
+                    GestureDetector(ctx, object : GestureDetector.SimpleOnGestureListener() {
+                        override fun onLongPress(e: MotionEvent) {
+                            // Obtener las coordenadas del punto donde se realizó la pulsación
+                            if (colocar) {
+                                endPoint =
+                                    map?.projection!!.fromPixels(
+                                        e.x.toInt(),
+                                        e.y.toInt()
+                                    ) as GeoPoint?
+                                map?.overlays?.remove(secondMarker)
+                                secondMarker = Marker(map)
+                                secondMarker?.position = endPoint
+                                secondMarker?.setAnchor(Marker.ANCHOR_BOTTOM, Marker.ANCHOR_CENTER)
+                                secondMarker?.title = "DESTINO"
+                                map?.overlays?.add(secondMarker)
 
-            private val gestureDetector =
-                GestureDetector(ctx, object : GestureDetector.SimpleOnGestureListener() {
-                    override fun onLongPress(e: MotionEvent) {
-                        // Obtener las coordenadas del punto donde se realizó la pulsación
-                        if (colocar) {
-                            endPoint =
-                                map?.projection!!.fromPixels(e.x.toInt(), e.y.toInt()) as GeoPoint?
-                            map?.overlays?.remove(secondMarker)
-                            secondMarker = Marker(map)
-                            secondMarker?.position = endPoint
-                            secondMarker?.setAnchor(Marker.ANCHOR_BOTTOM, Marker.ANCHOR_CENTER)
-                            secondMarker?.title = "DESTINO"
-                            map?.overlays?.add(secondMarker)
-
-                            line.setPoints(emptyList())
-                            map?.overlays?.remove(line)
-                            coords()
+                                line.setPoints(emptyList())
+                                map?.overlays?.remove(line)
+                                coords()
+                            }
+                            // Redibujar el mapa para mostrar el nuevo marcador
+                            map?.invalidate()
                         }
-                        // Redibujar el mapa para mostrar el nuevo marcador
-                        map?.invalidate()
-                    }
-                })
+                    })
 
-            override fun onTouchEvent(event: MotionEvent, mapView: MapView): Boolean {
-                gestureDetector.onTouchEvent(event)
-                return super.onTouchEvent(event, mapView)
-            }
-        }
-
-
-        // Agregar el Overlay de eventos de toque al mapa
-        map?.overlays?.add(touchOverlay)
-        map?.overlays!!.add(mOverlay)
-
-        var mensaje = true
-        boton.setOnClickListener {
-            if (colocar) {
-                colocar = false
-                boton.text = "Agregar Ubicacion"
-                map?.setBuiltInZoomControls(true)
-            } else {
-                colocar = true
-                boton.text = "Habilitar zoom"
-                map?.setBuiltInZoomControls(false)
-                if (mensaje) {
-                    Toast.makeText(
-                        ctx, "TIP: Manten presionado para agregar la ubicacion", Toast.LENGTH_LONG
-                    ).show()
-                    mensaje = false
+                override fun onTouchEvent(event: MotionEvent, mapView: MapView): Boolean {
+                    gestureDetector.onTouchEvent(event)
+                    return super.onTouchEvent(event, mapView)
                 }
             }
+
+
+            // Agregar el Overlay de eventos de toque al mapa
+            map?.overlays?.add(touchOverlay)
+            map?.overlays!!.add(mOverlay)
         }
     }
 
@@ -247,7 +241,7 @@ class MainActivity : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             val inicio = "${startPoint!!.longitude},${startPoint!!.latitude}"
             val final = "${endPoint!!.longitude},${endPoint!!.latitude}"
-            val api = "5b3ce3597851110001cf6248195446ce6bac45e7851606b557eab502"
+            val api = "5b3ce3597851110001cf6248df42a8451614433c89fde58819755646"
             val coordenadas = direccionesApi.getDirections(api, inicio, final)
             val features = coordenadas.features
             for (feature in features) {
