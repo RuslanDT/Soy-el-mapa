@@ -30,12 +30,11 @@ import org.osmdroid.views.overlay.*
 
 
 class MainActivity : AppCompatActivity() {
-    private var firstMarker: Marker? = null
-    private var secondMarker: Marker? = null
+    private var marcador1: Marker? = null
+    private var marcador2: Marker? = null
     private var endPoint: GeoPoint? = null
     private var startPoint: GeoPoint? = null
     private var line = Polyline()
-    private var colocar = false
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
     private lateinit var locationRequest: LocationRequest
@@ -71,10 +70,9 @@ class MainActivity : AppCompatActivity() {
         startPoint = GeoPoint(0, 0)
         mapController.setCenter(startPoint)
 
-        // Inicializa la variable de ubicación
+        //GEOLOCALIZACION INICIADA
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
-        // Configura el callback de ubicación
+        
         var hasCenteredMap = false
 
         startPoint = GeoPoint(61.480145, 23.501203)
@@ -87,42 +85,36 @@ class MainActivity : AppCompatActivity() {
                 btnInico.setOnClickListener{
                     val lastLocation = locationResult.lastLocation
                     startPoint = GeoPoint(lastLocation!!.latitude, lastLocation.longitude)
-                    firstMarker?.position = startPoint
+                    marcador1?.position = startPoint
                     mapController.setZoom(19)
                     mapController.setCenter(startPoint)
                     hasCenteredMap = true
                 }
 
-                if (secondMarker != null && line.distance > 0) {
+                if (marcador2 != null && line.distance > 0) {
                     line.setPoints(emptyList())
                     map?.overlays?.remove(line)
-                    coords()
+                    agregarLineas()
                 }
                 map?.invalidate()
             }
         }
 
 
-        // Configura la solicitud de ubicación
+        //CONFIGRANDO UBICACION
         locationRequest = LocationRequest.create().apply {
             interval = 10000
             fastestInterval = 5000
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
 
-        /*items.add(
-            OverlayItem(
-                "Title", "Description", GeoPoint(0.0, 0.0)
-            )
-        )*/
+        marcador1 = Marker(map)
+        marcador1?.position = startPoint
+        marcador1?.setAnchor(Marker.ANCHOR_BOTTOM, Marker.ANCHOR_CENTER)
+        marcador1?.title = "UBICACION ACTUAL"
+        marcador1?.setIcon(getResources().getDrawable(org.osmdroid.gpkg.R.drawable.marker_default_focused_base))
 
-        firstMarker = Marker(map)
-        firstMarker?.position = startPoint
-        firstMarker?.setAnchor(Marker.ANCHOR_BOTTOM, Marker.ANCHOR_CENTER)
-        firstMarker?.title = "UBICACION ACTUAL"
-        firstMarker?.setIcon(getResources().getDrawable(org.osmdroid.gpkg.R.drawable.marker_default_focused_base))
-
-        map?.overlays?.add(firstMarker)
+        map?.overlays?.add(marcador1)
         map?.invalidate()
 
 
@@ -139,33 +131,29 @@ class MainActivity : AppCompatActivity() {
         )
         mOverlay.setFocusItemsOnTap(true)
 
-        // Crear un nuevo Overlay para capturar eventos de toque
+        // UBICACION DESTINO
         btnDestino.setOnClickListener {
             val touchOverlay = object : Overlay() {
                 private val gestureDetector =
                     GestureDetector(ctx, object : GestureDetector.SimpleOnGestureListener() {
                         override fun onLongPress(e: MotionEvent) {
-                            // Obtener las coordenadas del punto donde se realizó la pulsación
-
+                            //OBTENCION DE COORDENADAS
                             endPoint =
                                 map?.projection!!.fromPixels(
                                     e.x.toInt(),
                                     e.y.toInt()
                                 ) as GeoPoint?
 
-                            map?.overlays?.remove(secondMarker)
-                            secondMarker = Marker(map)
-                            secondMarker?.position = endPoint
-                            secondMarker?.setAnchor(Marker.ANCHOR_BOTTOM, Marker.ANCHOR_CENTER)
-                            secondMarker?.title = "DESTINO"
-                            secondMarker?.setIcon(getResources().getDrawable(org.osmdroid.gpkg.R.drawable.marker_default_focused_base))
-                            map?.overlays?.add(secondMarker)
-
+                            map?.overlays?.remove(marcador2)
+                            marcador2 = Marker(map)
+                            marcador2?.position = endPoint
+                            marcador2?.setAnchor(Marker.ANCHOR_BOTTOM, Marker.ANCHOR_CENTER)
+                            marcador2?.title = "DESTINO"
+                            marcador2?.setIcon(getResources().getDrawable(org.osmdroid.gpkg.R.drawable.marker_default_focused_base))
+                            map?.overlays?.add(marcador2)
                             line.setPoints(emptyList())
                             map?.overlays?.remove(line)
-                            coords()
-
-                            // Redibujar el mapa para mostrar el nuevo marcador
+                            agregarLineas()
                             map?.invalidate()
                         }
                     })
@@ -176,8 +164,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-
-            // Agregar el Overlay de eventos de toque al mapa
+            //AGREGA OVERS AL MAPITA
             map?.overlays?.add(touchOverlay)
             map?.overlays!!.add(mOverlay)
         }
@@ -214,9 +201,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<String>, grantResults: IntArray
-    ) {
+    override fun onRequestPermissionsResult( requestCode: Int, permissions: Array<String>, grantResults: IntArray ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             0 -> {
@@ -241,7 +226,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun coords() {
+    fun agregarLineas() {
         CoroutineScope(Dispatchers.IO).launch {
             val inicio = "${startPoint!!.longitude},${startPoint!!.latitude}"
             val final = "${endPoint!!.longitude},${endPoint!!.latitude}"
