@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
         Direcciones.retrofitService
     }
 
-    //your items
+    //ITEMS
     var items = ArrayList<OverlayItem>()
 
     @SuppressLint("MissingInflatedId", "SetTextI18n")
@@ -134,29 +134,27 @@ class MainActivity : AppCompatActivity() {
         // UBICACION DESTINO
         btnDestino.setOnClickListener {
             val touchOverlay = object : Overlay() {
-                private val gestureDetector =
-                    GestureDetector(ctx, object : GestureDetector.SimpleOnGestureListener() {
-                        override fun onLongPress(e: MotionEvent) {
-                            //OBTENCION DE COORDENADAS
-                            endPoint =
-                                map?.projection!!.fromPixels(
-                                    e.x.toInt(),
-                                    e.y.toInt()
-                                ) as GeoPoint?
+                private val gestureDetector = GestureDetector(ctx, object : GestureDetector.SimpleOnGestureListener() {
+                    override fun onLongPress(e: MotionEvent) {
+                        //OBTENCION DE COORDENADAS
+                        endPoint = map?.projection!!.fromPixels(
+                            e.x.toInt(),
+                            e.y.toInt()
+                        ) as GeoPoint?
 
-                            map?.overlays?.remove(marcador2)
-                            marcador2 = Marker(map)
-                            marcador2?.position = endPoint
-                            marcador2?.setAnchor(Marker.ANCHOR_BOTTOM, Marker.ANCHOR_CENTER)
-                            marcador2?.title = "DESTINO"
-                            marcador2?.setIcon(getResources().getDrawable(org.osmdroid.gpkg.R.drawable.marker_default_focused_base))
-                            map?.overlays?.add(marcador2)
-                            line.setPoints(emptyList())
-                            map?.overlays?.remove(line)
-                            agregarLineas()
-                            map?.invalidate()
-                        }
-                    })
+                        map?.overlays?.remove(marcador2)
+                        marcador2 = Marker(map)
+                        marcador2?.position = endPoint
+                        marcador2?.setAnchor(Marker.ANCHOR_BOTTOM, Marker.ANCHOR_CENTER)
+                        marcador2?.title = "DESTINO"
+                        marcador2?.setIcon(getResources().getDrawable(org.osmdroid.gpkg.R.drawable.marker_default_focused_base))
+                        map?.overlays?.add(marcador2)
+                        line.setPoints(emptyList())
+                        map?.overlays?.remove(line)
+                        agregarLineas()
+                        map?.invalidate()
+                    }
+                })
 
                 override fun onTouchEvent(event: MotionEvent, mapView: MapView): Boolean {
                     gestureDetector.onTouchEvent(event)
